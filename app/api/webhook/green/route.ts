@@ -28,14 +28,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, skipped: true });
     }
 
-    if (body?.messageData?.typeMessage !== "textMessage") {
+    const typeMessage = body?.messageData?.typeMessage;
+    if (!["textMessage", "extendedTextMessage"].includes(typeMessage)) {
       mark("doneMs");
       console.info("[green-webhook] skipped_non_text", timings);
       return NextResponse.json({ ok: true, skipped: true });
     }
 
     const waId = body?.senderData?.chatId;
-    const text = body?.messageData?.textMessageData?.textMessage || "";
+    const text =
+      body?.messageData?.textMessageData?.textMessage ||
+      body?.messageData?.extendedTextMessageData?.text ||
+      body?.messageData?.extendedTextMessageData?.description ||
+      "";
 
     if (!waId || !text) {
       mark("doneMs");

@@ -1,26 +1,133 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --sand-50: #f6f2ea;
+  --sand-100: #ece3d4;
+  --ink-900: #1a1712;
+  --ink-700: #2b241c;
+  --brand: #bd7f2f;
+  --brand-deep: #8f5d1d;
+  --card: rgba(255, 255, 255, 0.86);
+  --line: rgba(28, 23, 18, 0.14);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  margin: 0;
+  min-height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--ink-900);
+  font-family: var(--font-sans), "Trebuchet MS", "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(189, 127, 47, 0.22), transparent 45%),
+    radial-gradient(circle at 88% 16%, rgba(143, 93, 29, 0.16), transparent 38%),
+    linear-gradient(180deg, var(--sand-50), var(--sand-100));
+}
+
+.ops-shell {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 42px 20px 56px;
+}
+
+.hero {
+  margin-bottom: 24px;
+}
+
+.hero h1 {
+  margin: 0 0 10px;
+  font-size: clamp(2rem, 4.6vw, 3.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+
+.hero p {
+  margin: 0;
+  max-width: 68ch;
+  color: var(--ink-700);
+  line-height: 1.55;
+}
+
+.chip {
+  display: inline-block;
+  margin: 0 0 12px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.68);
+  color: var(--brand-deep);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.card {
+  grid-column: span 6;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--card);
+  backdrop-filter: blur(3px);
+  padding: 18px;
+  box-shadow: 0 12px 28px rgba(37, 30, 24, 0.07);
+}
+
+.card:nth-child(3),
+.card:nth-child(4) {
+  grid-column: span 12;
+}
+
+.card h2 {
+  margin: 0 0 8px;
+  font-size: 1.06rem;
+}
+
+.card p {
+  margin: 8px 0 0;
+  color: var(--ink-700);
+  line-height: 1.5;
+}
+
+.card code {
+  display: inline-block;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin: 2px 0;
+  background: rgba(189, 127, 47, 0.08);
+  color: #6b3b08;
+  font-family: var(--font-mono), "Consolas", monospace;
+  font-size: 0.86rem;
+}
+
+.card ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--ink-700);
+}
+
+.card li {
+  margin: 7px 0;
+}
+
+@media (max-width: 760px) {
+  .ops-shell {
+    padding: 28px 14px 34px;
+  }
+
+  .card {
+    grid-column: span 12;
+    border-radius: 14px;
+    padding: 14px;
+  }
 }

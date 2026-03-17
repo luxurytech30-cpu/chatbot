@@ -43,7 +43,13 @@ export async function generateAvailableSlots({
   }
 
   const dow = getDayOfWeek(date);
-  if (dow === null || !barber.workDays.includes(dow)) {
+  const workDays = Array.isArray((barber as any).workDays)
+    ? (barber as any).workDays
+    : Array.isArray((barber as any).worksDays)
+      ? (barber as any).worksDays
+      : [];
+
+  if (dow === null || !workDays.includes(dow)) {
     return { ok: false, message: "This barber does not work on that day." };
   }
 
@@ -52,15 +58,25 @@ export async function generateAvailableSlots({
   const interval = Number(process.env.SHOP_SLOT_INTERVAL_MIN || 30);
   const duration = service.durationMin;
 
+  if (!Number.isFinite(openHour) || !Number.isFinite(closeHour) || openHour >= closeHour) {
+    return { ok: false, message: "Shop hours are not configured correctly." };
+  }
+
+  if (!Number.isFinite(interval) || interval <= 0) {
+    return { ok: false, message: "Slot interval is not configured correctly." };
+  }
+
   const booked = await Appointment.find({
     barberId,
     date,
     status: "booked"
-  }).sort({ time: 1 });
+  })
+    .populate("serviceId", "durationMin")
+    .sort({ time: 1 });
 
   const bookedRanges = booked.map((a: any) => ({
     start: timeToMinutes(a.time),
-    end: timeToMinutes(a.time) + 60
+    end: timeToMinutes(a.time) + Number(a?.serviceId?.durationMin || 60)
   }));
 
   const slots: string[] = [];

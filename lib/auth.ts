@@ -5,7 +5,7 @@ function readBearerToken(authorizationHeader: string | null) {
   return authorizationHeader.replace(/^Bearer\s+/i, "").trim();
 }
 
-export function requierAdmn(req: NextRequest) {
+export function requireAdmin(req: NextRequest) {
   const expected = process.env.ADMIN_TOKEN?.trim();
   const incoming = req.headers.get("x-admin-token")?.trim() || "";
 
@@ -13,6 +13,7 @@ export function requierAdmn(req: NextRequest) {
     throw new Error("UNAUTHORIZED_ADMIN");
   }
 }
+export const requierAdmn = requireAdmin;
 
 export function requireWebhookSecret(req: NextRequest) {
   const expected = process.env.WEBHOOK_SECRET?.trim();
