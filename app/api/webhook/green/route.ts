@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/db";
 import { requireWebhookSecret } from "@/lib/auth";
 import { ProcessedWebhook } from "@/models/ProcessedWebhook";
-import { MessageLog } from "@/models/MessageLog";
 import { processIncomingMessage } from "@/lib/chatbot";
 import { sendWhatsAppMessage } from "@/lib/green-api";
 
@@ -64,31 +63,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, duplicate: true });
     }
 
-    void MessageLog.create({
-      waId,
-      direction: "incoming",
-      text,
-      meta: { webhookId },
-    }).catch((e) => {
-      console.error("[green-webhook] incoming_log_failed", e?.message || e);
-    });
-    mark("incomingLogMs");
-
     const reply = await processIncomingMessage({ waId, text });
     mark("processIncomingMs");
 
     await sendWhatsAppMessage(waId, reply);
     mark("sendReplyMs");
-
-    void MessageLog.create({
-      waId,
-      direction: "outgoing",
-      text: reply,
-      meta: {},
-    }).catch((e) => {
-      console.error("[green-webhook] outgoing_log_failed", e?.message || e);
-    });
-    mark("outgoingLogMs");
 
     mark("doneMs");
     console.info("[green-webhook] ok", timings);

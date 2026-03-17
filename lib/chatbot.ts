@@ -3,7 +3,7 @@ import { Barber } from "@/models/Barber";
 import { Conversation } from "@/models/Conversation";
 import { Service } from "@/models/Service";
 import { normalizeText } from "./normalize-text";
-import { isISODate, isValidChoice, isValidName } from "./validators";
+import { isValidChoice, isValidName, normalizeDateToISO } from "./validators";
 import { generateAvailableSlots } from "./slots";
 import { sendWhatsAppMessage } from "./green-api";
 
@@ -210,20 +210,19 @@ export async function processIncomingMessage({
   }
 
   if (conversation.currentStep === "BOOKING_DATE") {
-    if (!isISODate(normalized)) {
-      return "Invalid date format. Use YYYY-MM-DD.";
-    }
+    const isoDate = normalizeDateToISO(text);
+    if (!isoDate) return "Invalid date format. Use YYYY-MM-DD.";
 
     const slotResult = await generateAvailableSlots({
       barberId: String(conversation.selectedBarberId),
       serviceId: String(conversation.selectedServiceId),
-      date: normalized,
+      date: isoDate,
     });
 
     if (!slotResult.ok) return slotResult.message;
     if (!slotResult.slots.length) return "No available slots on this date. Send another date.";
 
-    conversation.selectedDate = normalized;
+    conversation.selectedDate = isoDate;
     conversation.availableSlotsCache = slotResult.slots;
     conversation.currentStep = "BOOKING_TIME";
     await conversation.save();
