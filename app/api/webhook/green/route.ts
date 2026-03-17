@@ -7,6 +7,7 @@ import { processIncomingMessage } from "@/lib/chatbot";
 import { sendWhatsAppMessage } from "@/lib/green-api";
 
 export const runtime = "nodejs";
+export const preferredRegion = "fra1";
 
 export async function POST(req: NextRequest) {
   const startedAt = Date.now();
@@ -18,9 +19,6 @@ export async function POST(req: NextRequest) {
   try {
     requireWebhookSecret(req);
     mark("authMs");
-
-    await dbConnect();
-    mark("dbConnectMs");
 
     const body = await req.json();
     mark("parseBodyMs");
@@ -36,6 +34,18 @@ export async function POST(req: NextRequest) {
       console.info("[green-webhook] skipped_non_text", timings);
       return NextResponse.json({ ok: true, skipped: true });
     }
+
+    const waId = body?.senderData?.chatId;
+    const text = body?.messageData?.textMessageData?.textMessage || "";
+
+    if (!waId || !text) {
+      mark("doneMs");
+      console.info("[green-webhook] skipped_missing_payload", timings);
+      return NextResponse.json({ ok: true, skipped: true });
+    }
+
+    await dbConnect();
+    mark("dbConnectMs");
 
     const webhookId =
       body?.idMessage ||
@@ -54,20 +64,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, duplicate: true });
     }
 
-    const waId = body?.senderData?.chatId;
-    const text = body?.messageData?.textMessageData?.textMessage || "";
-
-    if (!waId || !text) {
-      mark("doneMs");
-      console.info("[green-webhook] skipped_missing_payload", timings);
-      return NextResponse.json({ ok: true, skipped: true });
-    }
-
-    await MessageLog.create({
+    void MessageLog.create({
       waId,
       direction: "incoming",
       text,
       meta: { webhookId },
+    }).catch((e) => {
+      console.error("[green-webhook] incoming_log_failed", e?.message || e);
     });
     mark("incomingLogMs");
 
@@ -77,11 +80,13 @@ export async function POST(req: NextRequest) {
     await sendWhatsAppMessage(waId, reply);
     mark("sendReplyMs");
 
-    await MessageLog.create({
+    void MessageLog.create({
       waId,
       direction: "outgoing",
       text: reply,
       meta: {},
+    }).catch((e) => {
+      console.error("[green-webhook] outgoing_log_failed", e?.message || e);
     });
     mark("outgoingLogMs");
 
