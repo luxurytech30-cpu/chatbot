@@ -24,12 +24,38 @@ export function normalizeDateToISO(input: string) {
     .replace(/\s+/g, "")
     .replace(/[/.]/g, "-");
 
-  const match = cleaned.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-  if (!match) return null;
+  const parts = cleaned.split("-");
+  if (parts.length !== 3) return null;
 
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
+  const p0 = parts[0];
+  const p1 = parts[1];
+  const p2 = parts[2];
+
+  let year: number;
+  let month: number;
+  let day: number;
+
+  const isYearMonthDay =
+    /^\d{4}$/.test(p0) &&
+    /^\d{1,2}$/.test(p1) &&
+    /^\d{1,2}$/.test(p2);
+
+  const isDayMonthYear =
+    /^\d{1,2}$/.test(p0) &&
+    /^\d{1,2}$/.test(p1) &&
+    /^\d{4}$/.test(p2);
+
+  if (isYearMonthDay) {
+    year = Number(p0);
+    month = Number(p1);
+    day = Number(p2);
+  } else if (isDayMonthYear) {
+    day = Number(p0);
+    month = Number(p1);
+    year = Number(p2);
+  } else {
+    return null;
+  }
 
   const dt = new Date(year, month - 1, day);
   if (

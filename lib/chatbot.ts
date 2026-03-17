@@ -344,12 +344,12 @@ export async function processIncomingMessage({
     conversation.selectedBarberId = selected._id;
     conversation.currentStep = "BOOKING_DATE";
     await conversation.save();
-    return "Send date in this format: YYYY-MM-DD";
+    return "Send date in this format: YYYY-MM-DD (or DD.MM.YYYY).";
   }
 
   if (conversation.currentStep === "BOOKING_DATE") {
     const isoDate = normalizeDateToISO(text);
-    if (!isoDate) return "Invalid date format. Use YYYY-MM-DD.";
+    if (!isoDate) return "Invalid date format. Use YYYY-MM-DD or DD.MM.YYYY.";
 
     const slotResult = await generateAvailableSlots({
       barberId: String(conversation.selectedBarberId),
