@@ -22,6 +22,14 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     mark("parseBodyMs");
 
+    const providerTimestampSec = Number(body?.timestamp);
+    if (Number.isFinite(providerTimestampSec) && providerTimestampSec > 0) {
+      timings.providerToServerLagMs = Math.max(
+        0,
+        Date.now() - providerTimestampSec * 1000
+      );
+    }
+
     if (body?.typeWebhook !== "incomingMessageReceived") {
       mark("doneMs");
       console.info("[green-webhook] skipped_non_incoming", timings);
